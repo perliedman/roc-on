@@ -1,5 +1,10 @@
 import { useLoaderData } from "react-router-dom";
-import { usePunches, useRocInfo } from "./roc-api";
+import {
+  useFavoriteUnitIds,
+  usePunches,
+  useRocInfo,
+  useToggleFavoriteUnitId,
+} from "./roc-api";
 import { format, formatRelative } from "date-fns";
 import { sv } from "date-fns/locale";
 
@@ -12,13 +17,26 @@ export default function RocInfo() {
   const { data: punchData } = usePunches(unitId);
   const roc = data?.roc;
   const now = new Date();
+  const { data: favoriteData } = useFavoriteUnitIds();
+  const toggleFavorite = useToggleFavoriteUnitId();
+  const isFavorite = favoriteData ? favoriteData.includes(unitId) : false;
 
   return (
     roc && (
       <>
         <div className="px-4 pb-2 border-b border-slate-700">
           <div className="flex flex-row justify-between">
-            <h1 className="text-4xl font-bold text-slate-200">{roc.name}</h1>
+            <h1 className="text-4xl font-bold text-slate-200">
+              {roc.name}
+              &nbsp;
+              <button
+                className={isFavorite ? "text-slate-200" : "text-slate-600"}
+                onClick={() => toggleFavorite(unitId)}
+                title={isFavorite ? "Ta bort favorit" : "Lägg till favorit"}
+              >
+                {isFavorite ? "★" : "☆"}
+              </button>
+            </h1>
             <div className="text-sm text-slate-400 text-right ml-2">
               <>
                 {roc.online ? (

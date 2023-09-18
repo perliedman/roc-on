@@ -1,9 +1,9 @@
 import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
 import { parse as parseDate } from "date-fns";
 
 let lastUpdate: Date | null = null;
 
-// const rocBaseUrl = 'https://roc.olresultat.se'
 const rocBaseUrl = "https://roc-proxy.vercel.app/api";
 type RocInfo = {
   online: boolean;
@@ -146,4 +146,56 @@ function fetcher<T>(htmlParser: ResponseParser<T>) {
       throw new Error(`Unexpected HTTP status code: ${respsone.status}`);
     }
   };
+}
+
+let favoriteUnitIds = JSON.parse(
+  window.localStorage.getItem("favoriteUnitIds") || "[]"
+) as string[];
+
+export function useFavoriteUnitIds() {
+  return useSWR("/favoriteUnitIds", async () => {
+    return favoriteUnitIds;
+  });
+}
+
+export function useToggleFavoriteUnitId() {
+  const { trigger } = useSWRMutation(
+    "/favoriteUnitIds",
+    async (_: string, { arg }: { arg: string }) => {
+      favoriteUnitIds = favoriteUnitIds.includes(arg)
+        ? favoriteUnitIds.filter((id) => id !== arg)
+        : [...favoriteUnitIds, arg];
+      window.localStorage.setItem(
+        "favoriteUnitIds",
+        JSON.stringify(favoriteUnitIds)
+      );
+      return favoriteUnitIds;
+    }
+  );
+
+  return (unitId: string) => trigger(unitId);
+}
+
+export type DisplayMode = "all" | "favorites";
+
+let displayMode = (window.localStorage.getItem("displayMode") ||
+  "all") as DisplayMode;
+
+export function useDisplayMode() {
+  return useSWR("/displayMode", async () => {
+    return displayMode;
+  });
+}
+
+export function useSetDisplayMode() {
+  const { trigger } = useSWRMutation(
+    "/displayMode",
+    async (_: string, { arg }: { arg: DisplayMode }) => {
+      displayMode = arg;
+      window.localStorage.setItem("displayMode", displayMode);
+      return displayMode;
+    }
+  );
+
+  return (mode: DisplayMode) => trigger(mode);
 }
