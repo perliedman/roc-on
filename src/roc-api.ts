@@ -1,6 +1,8 @@
 import useSWR from "swr";
 import { parse as parseDate } from "date-fns";
 
+let lastUpdate: Date | null = null;
+
 // const rocBaseUrl = 'https://roc.olresultat.se'
 const rocBaseUrl = "http://localhost:8010/proxy";
 type RocInfo = {
@@ -15,6 +17,16 @@ type RocInfo = {
   description: string;
   lastCodes: string;
 };
+
+export function useLastUpdated() {
+  return useSWR(
+    "/lastUpdate",
+    async () => {
+      return lastUpdate;
+    },
+    { refreshInterval: 1 * 1000, refreshWhenOffline: true }
+  );
+}
 
 export function useLatestRocs() {
   const now = new Date();
@@ -127,7 +139,9 @@ function fetcher<T>(htmlParser: ResponseParser<T>) {
       const html = await respsone.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");
-      return htmlParser(doc);
+      const result = htmlParser(doc);
+      lastUpdate = new Date();
+      return result;
     } else {
       throw new Error(`Unexpected HTTP status code: ${respsone.status}`);
     }
