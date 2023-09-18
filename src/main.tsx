@@ -8,17 +8,24 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import RocInfo from "./RocInfo.tsx";
+import Root from "./Root.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <RocList />,
-  },
-  {
-    path: "roc/:unitId",
-    loader: async ({ params }: LoaderFunctionArgs) =>
-      params.unitId ? { unitId: params.unitId } : null,
-    element: <RocInfo />,
+    element: <Root />,
+    children: [
+      {
+        path: "/",
+        element: <RocList />,
+      },
+      {
+        path: "roc/:unitId",
+        loader: async ({ params }: LoaderFunctionArgs) =>
+          params.unitId ? { unitId: params.unitId } : null,
+        element: <RocInfo />,
+      },
+    ],
   },
 ]);
 
