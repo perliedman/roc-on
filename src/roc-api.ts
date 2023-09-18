@@ -4,7 +4,7 @@ import { parse as parseDate } from "date-fns";
 let lastUpdate: Date | null = null;
 
 // const rocBaseUrl = 'https://roc.olresultat.se'
-const rocBaseUrl = "http://localhost:8010/proxy";
+const rocBaseUrl = "https://roc-proxy.vercel.app/api";
 type RocInfo = {
   online: boolean;
   punchLast5: boolean;
