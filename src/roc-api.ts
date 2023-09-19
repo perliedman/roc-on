@@ -3,6 +3,7 @@ import useSWRMutation from "swr/mutation";
 import { parse as parseDate } from "date-fns";
 
 let lastUpdate: Date | null = null;
+let loadingCount = 0;
 
 const rocBaseUrl = "https://roc-proxy.vercel.app/api";
 
@@ -32,7 +33,7 @@ export function useLastUpdated() {
   return useSWR(
     "/lastUpdate",
     async () => {
-      return lastUpdate;
+      return { lastUpdate, loading: loadingCount > 0 };
     },
     { refreshInterval: 1 * 1000, refreshWhenOffline: true }
   );
@@ -169,16 +170,21 @@ type ResponseParser<T> = (doc: Document) => T;
 
 function fetcher<T>(htmlParser: ResponseParser<T>) {
   return async (url: string) => {
-    const respsone = await fetch(url);
-    if (respsone.ok) {
-      const html = await respsone.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-      const result = htmlParser(doc);
-      lastUpdate = new Date();
-      return result;
-    } else {
-      throw new Error(`Unexpected HTTP status code: ${respsone.status}`);
+    try {
+      loadingCount++;
+      const respsone = await fetch(url);
+      if (respsone.ok) {
+        const html = await respsone.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const result = htmlParser(doc);
+        lastUpdate = new Date();
+        return result;
+      } else {
+        throw new Error(`Unexpected HTTP status code: ${respsone.status}`);
+      }
+    } finally {
+      loadingCount--;
     }
   };
 }
@@ -195,7 +201,7 @@ export function useFavouriteUnits() {
 
 export function useToggleFavouriteUnit() {
   const { trigger } = useSWRMutation(
-    "/favouriteUnitIds",
+    "/favouriteUnits",
     async (_: string, { arg }: { arg: UnknownRoc }) => {
       favouriteUnits = favouriteUnits.some((unit) => unit.unitId === arg.unitId)
         ? favouriteUnits.filter(({ unitId }) => unitId !== arg.unitId)

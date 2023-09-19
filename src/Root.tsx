@@ -7,6 +7,7 @@ import {
 } from "./roc-api";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import Spinner from "./Spinner";
 
 const modeButtons: [DisplayMode, string][] = [
   ["all", "Alla"],
@@ -15,10 +16,12 @@ const modeButtons: [DisplayMode, string][] = [
 
 export default function Root() {
   const { data } = useLastUpdated();
-  const hasDate = !!data;
-  const isOnline = hasDate && data.getTime() > Date.now() - 1 * 60 * 1000;
+  const lastUpdate = data?.lastUpdate;
+  const isOnline =
+    lastUpdate && lastUpdate.getTime() > Date.now() - 1 * 60 * 1000;
   const { data: displayMode } = useDisplayMode();
   const setDisplayMode = useSetDisplayMode();
+  const isLoading = data ? data.loading : true;
 
   return (
     <div className="absolute w-full overflow-auto bg-slate-950">
@@ -43,7 +46,10 @@ export default function Root() {
           <div>
             {isOnline ? (
               <span className="text-green-500">
-                ✓ {format(data?.getTime(), "HH:mm:ss", { locale: sv })}
+                <span className="inline-block w-8 h-8">
+                  {isLoading ? <Spinner /> : "✓"}
+                </span>
+                {format(lastUpdate.getTime(), "HH:mm:ss", { locale: sv })}
               </span>
             ) : (
               <span className="text-red-500">&times;</span>
