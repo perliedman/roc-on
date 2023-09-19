@@ -10,7 +10,7 @@ import { sv } from "date-fns/locale";
 
 const modeButtons: [DisplayMode, string][] = [
   ["all", "Alla"],
-  ["favorites", "Favoriter"],
+  ["favourites", "Favoriter"],
 ];
 
 export default function Root() {
@@ -30,6 +30,7 @@ export default function Root() {
           <div className="">
             {modeButtons.map(([mode, label]) => (
               <button
+                key={mode}
                 className={`border border-slate-600 border-r-0 last:border-r text-sm px-2 py-1 first:rounded-l last:rounded-r ${
                   displayMode === mode ? "bg-slate-400 text-slate-800" : ""
                 }`}

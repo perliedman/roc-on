@@ -1,9 +1,9 @@
 import { useLoaderData } from "react-router-dom";
 import {
-  useFavoriteUnitIds,
+  useFavouriteUnits,
   usePunches,
   useRocInfo,
-  useToggleFavoriteUnitId,
+  useToggleFavouriteUnit,
 } from "./roc-api";
 import { format, formatRelative } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -13,13 +13,14 @@ const futureTolerance = -5 * 1000;
 
 export default function RocInfo() {
   const { unitId } = useLoaderData() as { unitId: string };
-  const { data } = useRocInfo(unitId);
+  const roc = useRocInfo(unitId);
   const { data: punchData } = usePunches(unitId);
-  const roc = data?.roc;
   const now = new Date();
-  const { data: favoriteData } = useFavoriteUnitIds();
-  const toggleFavorite = useToggleFavoriteUnitId();
-  const isFavorite = favoriteData ? favoriteData.includes(unitId) : false;
+  const { data: favouriteData } = useFavouriteUnits();
+  const toggleFavourite = useToggleFavouriteUnit();
+  const isFavourite = favouriteData
+    ? favouriteData.some((favorit) => unitId === favorit.unitId)
+    : false;
 
   return (
     roc && (
@@ -30,58 +31,73 @@ export default function RocInfo() {
               {roc.name}
               &nbsp;
               <button
-                className={isFavorite ? "text-slate-200" : "text-slate-600"}
-                onClick={() => toggleFavorite(unitId)}
-                title={isFavorite ? "Ta bort favorit" : "Lägg till favorit"}
+                className={isFavourite ? "text-slate-200" : "text-slate-600"}
+                onClick={() => toggleFavourite({ ...roc, type: "unknown" })}
+                title={isFavourite ? "Ta bort favorit" : "Lägg till favorit"}
               >
-                {isFavorite ? "★" : "☆"}
+                {isFavourite ? "★" : "☆"}
               </button>
             </h1>
             <div className="text-sm text-slate-400 text-right ml-2">
-              <>
-                {roc.online ? (
-                  <div className="text-green-500">Online</div>
-                ) : (
+              {roc.type === "known" ? (
+                <>
+                  {roc.online ? (
+                    <div className="text-green-500">Online</div>
+                  ) : (
+                    <div className="text-slate-600">Offline</div>
+                  )}
+                  {roc.punchLast5 ? (
+                    <div className="text-green-500">Nystämplad</div>
+                  ) : (
+                    <div className="text-slate-600">Ej nyligen stämplad</div>
+                  )}
+                </>
+              ) : (
+                <>
                   <div className="text-slate-600">Offline</div>
-                )}
-                {roc.punchLast5 ? (
-                  <div className="text-green-500">Nystämplad</div>
-                ) : (
-                  <div className="text-slate-600">Ej nyligen stämplad</div>
-                )}
-              </>
+                  <div className="text-amber-500">
+                    Status okänd - ej nyligen online
+                  </div>
+                </>
+              )}
             </div>
           </div>
-          <div className="flex flex-row justify-between items-end">
-            <div>
-              <div className="text-lg">{roc.competition}</div>
-              <div className="text-sm">{roc.description}</div>
+          {roc.type === "known" && (
+            <div className="flex flex-row justify-between items-end">
+              <div>
+                <div className="text-lg">{roc.competition}</div>
+                <div className="text-sm">{roc.description}</div>
+              </div>
+              <div className="text-sm text-slate-600">{roc.version}</div>
             </div>
-            <div className="text-sm text-slate-600">{roc.version}</div>
-          </div>
+          )}
         </div>
-        <div className="grid grid-cols-2 px-4 py-2 border-b border-slate-700">
-          <div className="text-slate-600">Senaste kontakt</div>
-          <div className={`text-right ${timeClass(roc.lastContact, now)}`}>
-            {formatRelative(roc.lastContact, new Date(), {
-              locale: sv,
-            })}
-            <br />
-            <span className="text-xs text-slate-400">
-              {format(roc.lastContact, "yyyy-MM-dd HH:mm:ss")}
-            </span>
+        {roc.type === "known" && (
+          <div className="grid grid-cols-2 px-4 py-2 border-b border-slate-700">
+            <div className="text-slate-600">Senaste kontakt</div>
+            <div className={`text-right ${timeClass(roc.lastContact, now)}`}>
+              {formatRelative(roc.lastContact, new Date(), {
+                locale: sv,
+              })}
+              <br />
+              <span className="text-xs text-slate-400">
+                {format(roc.lastContact, "yyyy-MM-dd HH:mm:ss")}
+              </span>
+            </div>
+            <div className="text-slate-600">Boot</div>
+            <div
+              className={`text-right ${timeClass(roc.lastBootCallHome, now)}`}
+            >
+              {formatRelative(roc.lastBootCallHome, new Date(), {
+                locale: sv,
+              })}
+              <br />
+              <span className="text-xs text-slate-400">
+                {format(roc.lastBootCallHome, "yyyy-MM-dd HH:mm:ss")}
+              </span>
+            </div>
           </div>
-          <div className="text-slate-600">Boot</div>
-          <div className={`text-right ${timeClass(roc.lastBootCallHome, now)}`}>
-            {formatRelative(roc.lastBootCallHome, new Date(), {
-              locale: sv,
-            })}
-            <br />
-            <span className="text-xs text-slate-400">
-              {format(roc.lastBootCallHome, "yyyy-MM-dd HH:mm:ss")}
-            </span>
-          </div>
-        </div>
+        )}
         {punchData?.punches && (
           <div className="py-2">
             {punchData.punches.length > 0 ? (
