@@ -44,15 +44,19 @@ export default function Root() {
             ))}
           </div>
           <div>
-            {isOnline ? (
-              <span className="text-green-500">
-                <span className="inline-block w-8 h-8">
-                  {isLoading ? <Spinner /> : "✓"}
+            {lastUpdate ? (
+              isOnline ? (
+                <span className="text-green-500">
+                  <span className="inline-block w-8 h-8">
+                    {isLoading ? <Spinner /> : "✓"}
+                  </span>
+                  {format(lastUpdate.getTime(), "HH:mm:ss", { locale: sv })}
                 </span>
-                {format(lastUpdate.getTime(), "HH:mm:ss", { locale: sv })}
-              </span>
+              ) : (
+                <span className="text-red-500">&times;</span>
+              )
             ) : (
-              <span className="text-red-500">&times;</span>
+              <Spinner />
             )}
           </div>
         </div>

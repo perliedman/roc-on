@@ -166,6 +166,31 @@ export function usePunches(unitId: string) {
   );
 }
 
+export function useContacts(unitId: string) {
+  return useSWR(
+    `${rocBaseUrl}/ver6.9/client.asp?function=callhome&command=listmini&unitId=${unitId}&advanced=true&ROCListSort=LastOnline&SortOrder=Desc`,
+    fetcher((doc) => {
+      const table = doc.querySelector("table");
+      const rows = [...(table?.querySelectorAll("tr") || [])];
+      const now = new Date();
+      return {
+        contacts: rows.slice(1).map((row) => {
+          const cells = [...row.querySelectorAll("td")];
+          const [time, type, codes, signal, networkType] = cells;
+          return {
+            time: parseDate(time.textContent || "", "yyyy-MM-dd HH:mm:ss", now),
+            type: type.textContent || "",
+            codes: codes.textContent || "",
+            signal: signal.textContent || "",
+            networkType: networkType.textContent || "",
+          };
+        }),
+      };
+    }),
+    { refreshInterval: 30 * 1000, refreshWhenOffline: true }
+  );
+}
+
 type ResponseParser<T> = (doc: Document) => T;
 
 function fetcher<T>(htmlParser: ResponseParser<T>) {

@@ -1,5 +1,6 @@
 import { useLoaderData } from "react-router-dom";
 import {
+  useContacts,
   useFavouriteUnits,
   usePunches,
   useRocInfo,
@@ -15,6 +16,7 @@ export default function RocInfo() {
   const { unitId } = useLoaderData() as { unitId: string };
   const roc = useRocInfo(unitId);
   const { data: punchData } = usePunches(unitId);
+  const { data: contactData } = useContacts(unitId);
   const now = new Date();
   const { data: favouriteData } = useFavouriteUnits();
   const toggleFavourite = useToggleFavouriteUnit();
@@ -99,42 +101,85 @@ export default function RocInfo() {
           </div>
         )}
         {punchData?.punches && (
-          <div className="py-2">
+          <div className="py-2 border-b border-slate-700">
             {punchData.punches.length > 0 ? (
               <>
                 <h2 className="text-slate-200 px-4 mb-2">Stämplingar</h2>
-                <table className="text-xs w-full">
-                  <thead>
-                    <tr className="text-slate-600 text-left">
-                      <th className="pl-4 font-normal">Tid</th>
-                      <th className="font-normal">Kontroll</th>
-                      <th className="pr-4 font-normal text-right">SI</th>
-                    </tr>
-                  </thead>
-                  {punchData.punches.map((punch, i) => (
-                    <tr key={i} className="align-top even:bg-slate-800">
-                      <td className="py-1 pl-4">
-                        <span className={timeClass(punch.time, now)}>
-                          {formatRelative(punch.time, now, { locale: sv })}
-                        </span>
-                        <br />
-                        <span className="text-slate-600">
-                          {format(punch.time, "yyyy-MM-dd HH:mm:ss.SSS")}
-                        </span>
-                      </td>
-                      <td>{punch.control}</td>
-                      <td className="pr-4 text-right">
-                        {punch.siNumber}
-                        <br />
-                        <span className="text-slate-600">{punch.type}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </table>
+                <div className="max-h-96 overflow-auto">
+                  <table className="text-xs w-full">
+                    <thead>
+                      <tr className="text-slate-600 text-left">
+                        <th className="pl-4 font-normal">Tid</th>
+                        <th className="font-normal">Kontroll</th>
+                        <th className="pr-4 font-normal text-right">SI</th>
+                      </tr>
+                    </thead>
+                    {punchData.punches.map((punch, i) => (
+                      <tr key={i} className="align-top even:bg-slate-800">
+                        <td className="py-1 pl-4">
+                          <span className={timeClass(punch.time, now)}>
+                            {formatRelative(punch.time, now, { locale: sv })}
+                          </span>
+                          <br />
+                          <span className="text-slate-600">
+                            {format(punch.time, "yyyy-MM-dd HH:mm:ss.SSS")}
+                          </span>
+                        </td>
+                        <td>{punch.control}</td>
+                        <td className="pr-4 text-right">
+                          {punch.siNumber}
+                          <br />
+                          <span className="text-slate-600">{punch.type}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </table>
+                </div>
               </>
             ) : (
               <h2 className="text-slate-600 px-4 mb-2">
                 Inga registrerade stämplingar
+              </h2>
+            )}
+          </div>
+        )}
+        {contactData?.contacts && (
+          <div className="py-2">
+            {contactData.contacts.length > 0 ? (
+              <>
+                <h2 className="text-slate-200 px-4 mb-2">Kontakt</h2>
+                <div className="max-h-96 overflow-auto">
+                  <table className="text-xs w-full">
+                    <thead>
+                      <tr className="text-slate-600 text-left">
+                        <th className="pl-4 font-normal">Tid</th>
+                        <th className="font-normal">Typ</th>
+                        <th className="font-normal">Nätverk</th>
+                        <th className="pr-4 font-normal text-right">Signal</th>
+                      </tr>
+                    </thead>
+                    {contactData.contacts.map((punch, i) => (
+                      <tr key={i} className="align-top even:bg-slate-800">
+                        <td className="py-1 pl-4">
+                          <span className={timeClass(punch.time, now)}>
+                            {formatRelative(punch.time, now, { locale: sv })}
+                          </span>
+                          <br />
+                          <span className="text-slate-600">
+                            {format(punch.time, "yyyy-MM-dd HH:mm:ss.SSS")}
+                          </span>
+                        </td>
+                        <td className="text-xs">{punch.type}</td>
+                        <td className="text-xs">{punch.networkType}</td>
+                        <td className="pr-4 text-right">{punch.signal}</td>
+                      </tr>
+                    ))}
+                  </table>
+                </div>
+              </>
+            ) : (
+              <h2 className="text-slate-600 px-4 mb-2">
+                Ingen registrerad kontakt
               </h2>
             )}
           </div>
